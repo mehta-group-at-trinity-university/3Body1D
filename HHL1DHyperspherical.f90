@@ -1,5 +1,5 @@
 !c     234567890
-      program HHL1DHyperspherical
+      Subroutine HHL1DHyperspherical(NumStates,PsiFlag,CouplingFlag,LegendreFile,LegPoints,Shift,Shift2,Order,Left,Right,alpha,m1,m2,m3,xNumPoints,xMin,xMax,RSteps,RDerivDelt,RFirst,RLast,DD,L,R,Uad,Psi,eDim,psiDim,S,sDim,run)
       implicit none
       integer LegPoints,xNumPoints
       integer NumStates,PsiFlag,Order,Left,Right
@@ -8,7 +8,7 @@
       double precision RLeft,RRight,RDerivDelt,DD,L
       DOUBLE PRECISION RFirst,RLast,XFirst,XLast,StepX
       double precision xMin,xMax
-      double precision, allocatable :: R(:)
+      double precision :: R(Rsteps)
       double precision, allocatable :: xPoints(:)
 
       logical, allocatable :: Select(:)
@@ -27,40 +27,20 @@
       double precision, allocatable :: workd(:),Residuals(:)
       double precision, allocatable :: xLeg(:),wLeg(:)
       double precision, allocatable :: u(:,:,:),uxx(:,:,:)
-      double precision, allocatable :: S(:,:),H(:,:)
+      double precision, allocatable :: H(:,:)
       double precision, allocatable :: lPsi(:,:),mPsi(:,:),rPsi(:,:),Energies(:,:)
       double precision, allocatable :: P(:,:),Q(:,:),dP(:,:)
+      double percision :: Psi(RSteps,psiDim,eDim),Uad(RSteps,eDim,2),S(sDim,psiDim)
       double precision ur(1:50000),acoef,bcoef,diff
       double precision sec,time,Rinitial,secp,timep,Rvalue
       character*64 LegendreFile
       common /Rvalue/ Rvalue      
 
-!     read in number of energies and states to print
-      read(5,*)
-      read(5,*) NumStates,PsiFlag,CouplingFlag
       write(6,*) NumStates,PsiFlag,CouplingFlag
-      
-!     read in Gauss-Legendre info
-      read(5,*)
-      read(5,*)
-      read(5,1002) LegendreFile
       write(6,1002) LegendreFile
-      read(5,*)
-      read(5,*)
-      read(5,*) LegPoints
       write(6,*) LegPoints,' LegPoints'
-      
-!     read in boundary conditions
-      read(5,*)
-      read(5,*)
-      read(5,*) Shift,Shift2,Order,Left,Right
       print*, 'Shift,Shift2, Order, Left, Right'
       print*, Shift,Shift2,Order,Left,Right
-
-!     read in potential parameters
-      read(5,*)
-      read(5,*)
-      read(5,*) alpha,m1,m2,m3,DD,L
       write(6,*) alpha,m1,m2,m3,DD,L
 
       mu12=m1*m2/(m1+m2)
@@ -71,15 +51,7 @@
       mgamma = mu/m1
       phi12=Pi/2
       phi23=datan(mgamma)
-!     read in grid information
-      read(5,*)
-      read(5,*)
-      read(5,*) xNumPoints,xMin,xMax
       write(6,*) xNumPoints,xMin,xMax
-
-      read(5,*)
-      read(5,*)
-      read(5,*) RSteps,RDerivDelt,RFirst,RLast
       write(6,*) RSteps,RDerivDelt,RFirst,RLast
 
 !     c	XFirst=dsqrt(RFirst)
@@ -92,12 +64,12 @@
       XLast = dlog10(RLast)
       StepX=(XLast-XFirst)/(RSteps-1.d0)
       
-      allocate(R(RSteps))
-      do i = 1,RSteps
+!      allocate(R(RSteps))
+!      do i = 1,RSteps
 !     read(5,*) R(i)
 !     R(i)= (XFirst+(i-1)*StepX)**3
-         R(i)= 10.d0**(XFirst+(i-1)*StepX)
-      enddo
+!         R(i)= 10.d0**(XFirst+(i-1)*StepX)
+!      enddo
 
 !      if (mod(xNumPoints,2) .ne. 0) then
 !         write(6,*) 'xNumPoints not divisible by 2'
@@ -134,7 +106,7 @@
       allocate(xPoints(xNumPoints))
       allocate(xBounds(xNumPoints+2*Order))
       allocate(u(LegPoints,xNumPoints,xDim),uxx(LegPoints,xNumPoints,xDim))
-      allocate(S(HalfBandWidth+1,MatrixDim),H(HalfBandWidth+1,MatrixDim))
+      allocate(H(HalfBandWidth+1,MatrixDim))
       allocate(P(NumStates,NumStates),Q(NumStates,NumStates),dP(NumStates,NumStates))
 
       ncv = 2*NumStates
@@ -153,6 +125,29 @@
       Tol=1e-20
 
       NumBound=0
+
+
+
+
+!----------------------------------------------------------------------------------------
+!     must move this block inside the loop over iR if the grid is adaptive
+         
+         print*, 'calling GridMaker'
+!     call GridMaker(mu,R(iR),2.0d0, xNumPoints,xMin,xMax,xPoints,CalcNewBasisFunc)
+         call GridMakerHHL(mu,mu12,mu123,phi23,R(iR),2.0d0, xNumPoints,xMin,xMax,xPoints,CalcNewBasisFunc)
+         if(CalcNewBasisFunc.eq.1) then
+            print*, 'done... Calculating Basis functions'
+            call CalcBasisFuncs(Left,Right,Order,xPoints,LegPoints,xLeg,xDim,xBounds,xNumPoints,0,u)
+            call CalcBasisFuncs(Left,Right,Order,xPoints,LegPoints,xLeg,xDim,xBounds,xNumPoints,2,uxx)
+         endif
+         print*, 'done... Calculating overlap matrix'
+!     must move this block inside the loop if the grid is adaptive
+!----------------------------------------------------------------------------------------
+         call CalcOverlap(Order,xPoints,LegPoints,xLeg,wLeg,xDim,xNumPoints,u,xBounds,HalfBandWidth,S)
+
+
+
+
 
       RChange=100.d0
       do iR = 1,RSteps
@@ -722,8 +717,7 @@
       double precision, allocatable :: lDiffPsi(:),rDiffPsi(:),TempPsi(:),TempPsiB(:),rSumPsi(:)
       double precision, allocatable :: TempmPsi(:)
 
-      allocate(lDiffPsi(MatrixDim),rDiffPsi(MatrixDim),TempPsi(MatrixDim),
-     >     TempPsiB(MatrixDim),rSumPsi(MatrixDim))
+      allocate(lDiffPsi(MatrixDim),rDiffPsi(MatrixDim),TempPsi(MatrixDim),TempPsiB(MatrixDim),rSumPsi(MatrixDim))
       allocate(TempmPsi(MatrixDim))
 
       aP = 0.5d0/RDelt

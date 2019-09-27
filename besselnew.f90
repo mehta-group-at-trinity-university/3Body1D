@@ -310,30 +310,13 @@
       xswitch = 15.d0!*(mu-1)/8.d0
       if(x.gt.xswitch) then
 !         print*, 'returning asymptotic form'
-         alpha =  1.d0/sqrt(2.d0*pi*x)*(1.d0
-     >        - (mu - 1.d0)/(8.d0*x)
-     >        + (mu - 1.d0)*(mu - 9.d0)/(2.d0*(8.d0*x)**2)
-     >        - (mu - 1.d0)*(mu - 9.d0)*(mu - 25.d0)/(6.d0*(8.d0*x)**3)
-     >        + (mu - 1.d0)*(mu - 9.d0)*(mu - 25.d0)*(mu - 49.d0)/(24.d0*(8.d0*x)**4))
+         alpha =  1.d0/sqrt(2.d0*pi*x)*(1.d0 - (mu - 1.d0)/(8.d0*x) + (mu - 1.d0)*(mu - 9.d0)/(2.d0*(8.d0*x)**2)- (mu - 1.d0)*(mu - 9.d0)*(mu - 25.d0)/(6.d0*(8.d0*x)**3)+ (mu - 1.d0)*(mu - 9.d0)*(mu - 25.d0)*(mu - 49.d0)/(24.d0*(8.d0*x)**4))
          
-         alphap = ((1.d0/x)**5.5d0*(-99225.d0 + 464976.d0*xnu**2 - 
-     -        32.d0*(3.d0*x*(525.d0 + 8.d0*x*(45.d0 + 16.d0*x*(3.d0 + 8.d0*x))) - 
-     -        4.d0*x*(1813.d0 + 48.d0*x*(25.d0 + 24.d0*x))*xnu**2 + 
-     -        (8883.d0 + 80.d0*x*(49.d0 + 24.d0*x))*xnu**4 - 
-     -        56.d0*(27.d0 + 8.d0*x)*xnu**6.d0 + 72.d0*xnu**8)))/
-     -        (196608.d0*Sqrt(2.d0*Pi))
+         alphap = ((1.d0/x)**5.5d0*(-99225.d0 + 464976.d0*xnu**2 - 32.d0*(3.d0*x*(525.d0 + 8.d0*x*(45.d0 + 16.d0*x*(3.d0 + 8.d0*x))) - 4.d0*x*(1813.d0 + 48.d0*x*(25.d0 + 24.d0*x))*xnu**2 + (8883.d0 + 80.d0*x*(49.d0 + 24.d0*x))*xnu**4 - 56.d0*(27.d0 + 8.d0*x)*xnu**6.d0 + 72.d0*xnu**8)))/(196608.d0*Sqrt(2.d0*Pi))
          
-         beta =  sqrt(pi/(2.d0*x))*(1.d0 + (mu - 1.d0)/(8.d0*x)
-     >        + (mu - 1.d0)*(mu - 9.d0)/(2.d0*(8.d0*x)**2)
-     >        + (mu - 1.d0)*(mu - 9.d0)*(mu - 25.d0)/(6.d0*(8.d0*x)**3)
-     >        + (mu - 1.d0)*(mu - 9.d0)*(mu - 25.d0)*(mu - 49.d0)/(24.d0*(8.d0*x)**4))
+         beta =  sqrt(pi/(2.d0*x))*(1.d0 + (mu - 1.d0)/(8.d0*x)+ (mu - 1.d0)*(mu - 9.d0)/(2.d0*(8.d0*x)**2)+ (mu - 1.d0)*(mu - 9.d0)*(mu - 25.d0)/(6.d0*(8.d0*x)**3)+ (mu - 1.d0)*(mu - 9.d0)*(mu - 25.d0)*(mu - 49.d0)/(24.d0*(8.d0*x)**4))
          
-         betap = (Sqrt(Pi/2.d0)*(1/x)**5.5d0*
-     -        (-99225 + 464976*xnu**2 - 
-     -        32*(3*x*(-525 + 8*x*(45 + 16*x*(-3 + 8*x))) + 
-     -        4*x*(1813 + 48*x*(-25 + 24*x))*xnu**2 + 
-     -        (8883 + 80*x*(-49 + 24*x))*xnu**4 + 
-     -        56*(-27 + 8*x)*xnu**6 + 72*xnu**8)))/196608.d0
+         betap = (Sqrt(Pi/2.d0)*(1/x)**5.5d0*(-99225 + 464976*xnu**2 - 32*(3*x*(-525 + 8*x*(45 + 16*x*(-3 + 8*x))) + 4*x*(1813 + 48*x*(-25 + 24*x))*xnu**2 + (8883 + 80*x*(-49 + 24*x))*xnu**4 + 56*(-27 + 8*x)*xnu**6 + 72*xnu**8)))/196608.d0
 
       else
          
@@ -352,13 +335,10 @@
       INTEGER MAXIT
       DOUBLE PRECISION ri,rip,rk,rkp,x,xnu,XMIN
       DOUBLE PRECISION EPS,FPMIN,PI
-      PARAMETER (EPS=1.d-10,FPMIN=1.d-30,MAXIT=10000,XMIN=2.,
-     *PI=3.141592653589793d0)
-CU    USES beschb
+      PARAMETER (EPS=1.d-10,FPMIN=1.d-30,MAXIT=10000,XMIN=2.,PI=3.141592653589793d0)
+!U    USES beschb
       INTEGER i,l,nl
-      DOUBLE PRECISION a,a1,b,c,d,del,del1,delh,dels,e,f,fact,fact2,ff,
-     *gam1,gam2,gammi,gampl,h,p,pimu,q,q1,q2,qnew,ril,ril1,rimu,rip1,
-     *ripl,ritemp,rk1,rkmu,rkmup,rktemp,s,sum,sum1,x2,xi,xi2,xmu,xmu2
+      DOUBLE PRECISION a,a1,b,c,d,del,del1,delh,dels,e,f,fact,fact2,ff,gam1,gam2,gammi,gampl,h,p,pimu,q,q1,q2,qnew,ril,ril1,rimu,rip1,ripl,ritemp,rk1,rkmu,rkmup,rktemp,s,sum,sum1,x2,xi,xi2,xmu,xmu2
       if(x.le.0..or.xnu.lt.0.) then
          read(*,*)
          write(6,*)  'bad arguments in bessik'

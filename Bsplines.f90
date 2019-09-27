@@ -290,8 +290,7 @@
 !c     of order  1 , and the coefficient for  b(i,1,t)(x)  must then be the
 !c     desired number  (d**j)f(x). (see x.(17)-(19) of text).
 !c     
-      integer jderiv,k,n,   i,ilo,imk,j,jc,jcmin,jcmax,jj,kmax,kmj,km1
-     *     ,mflag,nmi,jdrvp1
+      integer jderiv,k,n,   i,ilo,imk,j,jc,jcmin,jcmax,jj,kmax,kmj,km1,mflag,nmi,jdrvp1
       parameter (kmax = 20)
 !C     double precision bcoef(n),t(1),x,   aj(20),dl(20),dr(20),fkmj
       double precision bcoef(*),t(*),x,   aj(kmax),dl(kmax),dr(kmax),fkmj
@@ -465,7 +464,7 @@
 !c     **** now xt(ilo) .le. x .lt. xt(ihi) . narrow the interval.
  50   middle = (ilo + ihi)/2
       if (middle .eq. ilo)              go to 100
-c     note. it is assumed that middle = ilo in case ihi = ilo+1 .
+!c     note. it is assumed that middle = ilo in case ihi = ilo+1 .
       if (x .lt. xt(middle))            go to 53
       ilo = middle
       go to 50

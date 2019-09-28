@@ -2,7 +2,7 @@ program SVD
 implicit none
         real*8 :: n,w,m,Rmax,res,temp,overlap,tempA,tempB,epsout,&
                 Shift,alpha,r0diatom,etaOVERpi,xMin,xMax,yMin,yMax,RDerivDelt,RFirst,RLast,dscale,&
-                e,eMin,eMax,m1,m2,m3,mu3
+                e,eMin,eMax,m1,m2,m3,mu3,DD,L
         real*8, allocatable :: nodesR(:),weightsR(:),holder(:),Hsparse(:),&
                 Bsparse(:),Pmu(:),Pnu(:),eigenVals(:),ress(:),&
                 alphaR(:),alphaI(:),work(:),EVecs(:,:),VL(:,:),beta(:)
@@ -104,23 +104,21 @@ implicit none
         
         !!!!!!
         !obtain the adiabatic eigenvalues and eigenvectors from Kelly's code
-        NumStates = 200
+        NumStates = 10
         LegendreFile='Legendre.dat'
         LegPoints=10
-        if(set==1) Shift=-5*50
+        if(set==1) Shift=-7d0
         if(set==2) Shift=-5*50
         if(set==3) Shift=-5*50
         if(set==4) Shift=-5*100
         if(set==5) Shift=-5*250
         if(set==6) Shift=-5*300
+        shift2 = -0.01d0
         order=5
-        Left=0
+        Left=1
         Right=0
-        Bottom=2
-        Top=0
         alpha=1d0
-        m=1d0
-        if(set==1)xNumPoints = 70
+        if(set==1)xNumPoints = 40
         if(set==2)xNumPoints = 80
         if(set==2)xNumPoints = 90
         !xNumPoints=80
@@ -133,6 +131,8 @@ implicit none
         yMin=0d0
         yMax =1.570796326794897
         RDerivDelt=0.0001d0
+        DD = 0.853138729379683d0
+        L = 1.0d0
         RFirst=nodesR(2)
         RLast=nodesR(sR-1)
         dscale=10000d0
@@ -150,8 +150,8 @@ implicit none
         allocate(Uad(sRc,numStates,2),Psi(sRc,MatrixDim,numStates),S(HalfBandWidth+1,MatrixDim),&
                 indexOf(sRc,NumStates),Pnu(numStates),Pmu(numStates),O(probSize,probSize),&
                 iPsi(MatrixDim,numStates),jPsi(MatrixDim,numStates))
-        call adiabaticSolver(NumStates,0,0,LegendreFile,LegPoints,Shift,Order,Left,Right,top,Bottom,alpha,m,&
-                xNumPoints,xMin,xMax,yNumPoints,yMin,yMax,sRc,RDerivDelt,RFirst,RLast,dscale,&
+        call HHL1DHyperspherical(NumStates,0,0,LegendreFile,LegPoints,Shift,shift2,Order,Left,Right,alpha,m1,&
+                m2,m3,xNumPoints,xMin,xMax,sRc,RDerivDelt,RFirst,RLast,DD,L,&
                 nodesR(2:sR-1),Uad,Psi,numstates,MatrixDim,S,HalfBandWidth+1,set)
         !!!!!
               

@@ -133,13 +133,13 @@
 !     must move this block inside the loop over iR if the grid is adaptive
          
          print*, 'calling GridMaker'
-!     call GridMaker(mu,R(iR),2.0d0, xNumPoints,xMin,xMax,xPoints,CalcNewBasisFunc)
-         call GridMakerHHL(mu,mu12,mu123,phi23,R(iR),2.0d0, xNumPoints,xMin,xMax,xPoints,CalcNewBasisFunc)
-         if(CalcNewBasisFunc.eq.1) then
+     call GridMaker(mu,R(iR),2.0d0, xNumPoints,xMin,xMax,xPoints,CalcNewBasisFunc)
+         !call GridMakerHHL(mu,mu12,mu123,phi23,R(iR),2.0d0, xNumPoints,xMin,xMax,xPoints,CalcNewBasisFunc)
+         !if(CalcNewBasisFunc.eq.1) then
             print*, 'done... Calculating Basis functions'
             call CalcBasisFuncs(Left,Right,Order,xPoints,LegPoints,xLeg,xDim,xBounds,xNumPoints,0,u)
             call CalcBasisFuncs(Left,Right,Order,xPoints,LegPoints,xLeg,xDim,xBounds,xNumPoints,2,uxx)
-         endif
+        ! endif
          print*, 'done... Calculating overlap matrix'
 !     must move this block inside the loop if the grid is adaptive
 !----------------------------------------------------------------------------------------
@@ -158,19 +158,19 @@
          NumStateInc=NumStates-NumFirst
 !----------------------------------------------------------------------------------------
 !     must move this block inside the loop over iR if the grid is adaptive
-         
-         print*, 'calling GridMaker'
+!         
+!         print*, 'calling GridMaker'
 !     call GridMaker(mu,R(iR),2.0d0, xNumPoints,xMin,xMax,xPoints,CalcNewBasisFunc)
-         call GridMakerHHL(mu,mu12,mu123,phi23,R(iR),2.0d0, xNumPoints,xMin,xMax,xPoints,CalcNewBasisFunc)
-         if(CalcNewBasisFunc.eq.1) then
-            print*, 'done... Calculating Basis functions'
-            call CalcBasisFuncs(Left,Right,Order,xPoints,LegPoints,xLeg,xDim,xBounds,xNumPoints,0,u)
-            call CalcBasisFuncs(Left,Right,Order,xPoints,LegPoints,xLeg,xDim,xBounds,xNumPoints,2,uxx)
-         endif
-         print*, 'done... Calculating overlap matrix'
+!         call GridMakerHHL(mu,mu12,mu123,phi23,R(iR),2.0d0, xNumPoints,xMin,xMax,xPoints,CalcNewBasisFunc)
+!         if(CalcNewBasisFunc.eq.1) then
+!            print*, 'done... Calculating Basis functions'
+!            call CalcBasisFuncs(Left,Right,Order,xPoints,LegPoints,xLeg,xDim,xBounds,xNumPoints,0,u)
+!            call CalcBasisFuncs(Left,Right,Order,xPoints,LegPoints,xLeg,xDim,xBounds,xNumPoints,2,uxx)
+!         endif
+!         print*, 'done... Calculating overlap matrix'
 !     must move this block inside the loop if the grid is adaptive
 !----------------------------------------------------------------------------------------
-         call CalcOverlap(Order,xPoints,LegPoints,xLeg,wLeg,xDim,xNumPoints,u,xBounds,HalfBandWidth,S)
+!         call CalcOverlap(Order,xPoints,LegPoints,xLeg,wLeg,xDim,xNumPoints,u,xBounds,HalfBandWidth,S)
 
          if (CouplingFlag .ne. 0) then
             
@@ -209,15 +209,20 @@
 !               write(6,*) 'Calling FixPhase'
                call FixPhase(NumStates,HalfBandWidth,MatrixDim,S,NumStates,rPsi,mPsi)
             endif
-         endif
+         endiif
+
+
          
          call MyDsband(Select,Energies,mPsi,MatrixDim,Shift,MatrixDim,H,S,HalfBandWidth+1,LUFac,LeadDim,HalfBandWidth,NumStates,Tol,Residuals,ncv,mPsi,MatrixDim,iparam,workd,workl,ncv*ncv+8*ncv,iwork,info)
 
          if (CouplingFlag .ne. 0) call FixPhase(NumStates,HalfBandWidth,MatrixDim,S,ncv,rPsi,mPsi)
          
-         call CalcEigenErrors(info,iparam,MatrixDim,H,HalfBandWidth+1,S,HalfBandWidth,NumStates,mPsi,Energies,ncv)
+         !call CalcEigenErrors(info,iparam,MatrixDim,H,HalfBandWidth+1,S,HalfBandWidth,NumStates,mPsi,Energies,ncv)
 !         write(6,*) 'writing the energies'
-         write(200,20) R(iR),(Energies(i,1), i = 1,min(NumStates,iparam(5)))
+         do i=1,numstates
+                energies(i,2)=0
+         end do
+         !write(200,20) R(iR),(Energies(i,1), i = 1,min(NumStates,iparam(5)))
          
          write(6,*)
          write(6,*) 'RMid = ', R(iR)
@@ -229,6 +234,16 @@
 ! Adjust Shift
          if (iR.ge.2) Shift = Energies(1,1)
          
+         write(100,*) R(iR),(Energies(j,1),j=1,numStates)
+         do i=1,eDim
+                Uad(iR,i,1)=Energies(i,1)
+                Uad(iR,i,2)=Energies(i,2)
+         end do
+         do i=1,MatrixDim
+                do j=1,eDim
+                        Psi(iR,i,j)=mPsi(i,j)
+                end do
+         end do
 
          if (CouplingFlag .ne. 0) then
             call CalcCoupling(NumStates,HalfBandWidth,MatrixDim,RDerivDelt,lPsi,mPsi,rPsi,S,P,Q,dP)
@@ -255,14 +270,14 @@
 
       enddo
 
-      deallocate(S,H)
-      deallocate(Energies)
+      deallocate(H)
+     ! deallocate(Energies)
       deallocate(iwork)
       deallocate(Select)
       deallocate(LUFac)
       deallocate(workl)
       deallocate(workd)
-      deallocate(lPsi,mPsi,rPsi)
+      deallocate(lPsi,rPsi)
       deallocate(Residuals)
       deallocate(P,Q,dP)
       deallocate(xPoints)
@@ -270,7 +285,7 @@
       deallocate(xBounds)
       deallocate(u,uxx)
 
-      deallocate(R)
+      !deallocate(R)
 
  10   format(1P,100e25.15)
  20   format(1P,100e16.8)
@@ -666,25 +681,25 @@
       xRswitch = 12.0d0*r0New/Pi
       OPGRID=1
       
-      if((OPGRID.eq.1).and.(R.gt.xRswitch)) then
-         print*, 'R>xRswitch!! using modified grid!!'
-         x0 = xMin
-         x1 = xMax - r0New/R  
-         x2 = xMax
-         k = 1
-         xDelt = (x1-x0)/dfloat(xNumPoints/2)
-         do i = 1,xNumPoints/2
-            xPoints(k) = (i-1)*xDelt + x0
+!      if((OPGRID.eq.1).and.(R.gt.xRswitch)) then
+!         print*, 'R>xRswitch!! using modified grid!!'
+!         x0 = xMin
+!         x1 = xMax - r0New/R  
+!         x2 = xMax
+!         k = 1
+!         xDelt = (x1-x0)/dfloat(xNumPoints/2)
+!         do i = 1,xNumPoints/2
+!            xPoints(k) = (i-1)*xDelt + x0
 !            print*, k, xPoints(k), xDelt
-            k = k + 1
-         enddo
-         xDelt = (x2-x1)/dfloat(xNumPoints/2-1)
-         do i = 1,xNumPoints/2
-            xPoints(k) = (i-1)*xDelt + x1
+!            k = k + 1
+!         enddo
+!         xDelt = (x2-x1)/dfloat(xNumPoints/2-1)
+!         do i = 1,xNumPoints/2
+!            xPoints(k) = (i-1)*xDelt + x1
 !            print*, k, xPoints(k), xDelt
-            k = k + 1
-         enddo
-      else
+!            k = k + 1
+!         enddo
+!      else
          x0 = xMin
          x1 = xMax
          k = 1
@@ -694,7 +709,7 @@
 !            print*, k, xPoints(k), xDelt
             k = k + 1
          enddo
-      endif
+!      endif
       
 !      write(96,15) (xPoints(k),k=1,xNumPoints)
  15   format(6(1x,1pd12.5))
